@@ -4,19 +4,10 @@ import tkinter as tk
 from threading import Thread
 
 # These are global variables
-turtle = None
 turtle = Turtle()
 player = Turtle()
 screen = Screen()
-play_button = Turtle()
-close_button = Turtle()
-particles = Turtle()
-back_button = Turtle()
-main_menu_button = Turtle()
-up_arrow = Turtle()
-down_arrow = Turtle()
 box = Turtle()
-edit_button = Turtle()
 map_data = []
 block_data = None
 availible_blocks = ["blank","lights_normal", "block", "turtle", "player"]
@@ -40,34 +31,28 @@ def init_player():
     player.shape("player")
     player.speed(100000)
     
-def init_play_button():
+def init_play_button(play_button):
     play_button_shape = Shape("image", tk.PhotoImage(file="play_button.png"))
     reg_screen("play_button", play_button_shape)
     play_button.shape("play_button")
     
-def init_close_button():
+def init_close_button(close_button):
     close_button_shape = Shape("image", tk.PhotoImage(file="close_button.png"))
     reg_screen("close_button", close_button_shape)
     close_button.shape("close_button")
     close_button.penup()
 
-def init_back_button():    
+def init_back_button(back_button):    
     back_button_shape = Shape("image", tk.PhotoImage(file="back_button.png"))
     reg_screen("back_button", back_button_shape)
     init_button(back_button, "back_button")
     back_button.setpos(10000, -10000)
     
-def init_main_menu_button():
-    main_menu_button_shape = Shape("image", tk.PhotoImage(file="main_menu_button.png"))
-    reg_screen("main_menu_button", main_menu_button_shape)
-    init_button(main_menu_button, "main_menu_button")
-    main_menu_button.setpos(10000, 10000)
-    
-def init_up_arrow():
+def init_up_arrow(up_arrow):
     init_button(up_arrow, "arrow")
     up_arrow.left(90)
     
-def init_down_arrow():
+def init_down_arrow(down_arrow):
     init_button(down_arrow, "arrow")
     down_arrow.right(90)
     
@@ -77,23 +62,36 @@ def init_box():
     box.shape("box")
     box.hideturtle()
 
-def init_edit_button():
+def init_edit_button(edit_button):
     edit_button_shape = Shape("image", tk.PhotoImage(file="edit_button.png"))
     reg_screen("edit_button", edit_button_shape)
     init_button(edit_button, "edit_button")
     
+def init_buttons():
+    buttons = Buttons()
+    init_play_button(buttons.play)
+    buttons.play.onclick(make_open_game_fn(buttons))
+    
+    init_close_button(buttons.close)
+    buttons.close.onclick(close_game)
+    
+    init_edit_button(buttons.edit)
+    buttons.edit.onclick(make_edit(buttons))
+    
+    init_back_button(buttons.back)
+    buttons.back.onclick(make_init_game_fn(buttons))
+    
+    init_up_arrow(buttons.up_arrow)
+    buttons.up_arrow.onclick(event_up_button_click)
+    
+    init_down_arrow(buttons.down_arrow)
+    buttons.down_arrow.onclick(event_down_button_click)
+    
+    return buttons
+    
 def init_variables():
     init_player()
-    init_play_button()
-    init_close_button()
-    init_back_button()
-    init_main_menu_button()
-    init_up_arrow()
-    init_down_arrow()
     init_box()
-    init_edit_button()
-    
-    particles.hideturtle()
     
     turtle.speed(100000)
     
@@ -106,63 +104,64 @@ def init_variables():
     block_visible_shape = Shape("image", tk.PhotoImage(file="block.png"))
     reg_screen("block", block_visible_shape)
 
-def open_game(x, y):
-    global game_state
-    if game_state == "main_menu":
-        game_state = "level_select"
-        play_button.penup()
-        play_button.setpos(155, 300)
-        close_button.hideturtle()
-        back_button.penup()
-        back_button.setpos(-393, 380)
-        back_button.showturtle()
-        up_arrow.setpos(0, 380)
-        down_arrow.setpos(0, -380)
-        up_arrow.showturtle()
-        down_arrow.showturtle()
-        box.showturtle()
-        edit_button.setpos(-390, 0)
-        edit_button.showturtle()
-        turtle.setpos(-35, -15)
-        turtle.write("Level" + " " + str(level_num),font=("Comic Sans MS", 20, "normal"))
+def make_open_game_fn(buttons):
+    def open_game(x, y):
+        global game_state
+        if game_state == "main_menu":
+            game_state = "level_select"
+            buttons.play.penup()
+            buttons.play.setpos(155, 300)
+            buttons.close.hideturtle()
+            buttons.back.penup()
+            buttons.back.setpos(-393, 380)
+            buttons.back.showturtle()
+            buttons.up_arrow.setpos(0, 380)
+            buttons.down_arrow.setpos(0, -380)
+            buttons.up_arrow.showturtle()
+            buttons.down_arrow.showturtle()
+            box.showturtle()
+            buttons.edit.setpos(-390, 0)
+            buttons.edit.showturtle()
+            turtle.setpos(-35, -15)
+            turtle.write("Level " + str(level_num),font=("Comic Sans MS", 20, "normal"))
+            player.showturtle()
+        elif game_state == "level_select" or game_state == "edit":
+            game_state = "play"
+            screen.bgpic("background.png")
+            player.showturtle()
+    return open_game
+
+def make_init_game_fn(buttons):
+    def init_game(x, y):
+        global game_state
+        game_state = "main_menu"
+        screen.title("")
+        turtle.penup()
+        player.penup()
+        turtle.hideturtle()
+        screen.bgcolor("cyan")
+        player.setpos(-393,-120)
+        screen.bgpic("title_screen.png")
+        player.shape("player")
+        buttons.play.shape("play_button")
+        buttons.play.showturtle()
+        buttons.close.shape("close_button")
+        buttons.back.shape("back_button")
+        buttons.back.hideturtle()
+        buttons.back.setpos(10000, 10000)
+        buttons.play.showturtle()
+        buttons.play.speed(100000)
+        buttons.play.setpos(0, 0)
+        buttons.close.showturtle()
+        buttons.up_arrow.hideturtle()
+        buttons.down_arrow.hideturtle()
+        box.hideturtle()
+        turtle.clear()
+        buttons.edit.hideturtle()
         player.showturtle()
-    elif game_state == "level_select" or game_state == "edit":
-        game_state = "play"
-        screen.bgpic("background.png")
-        player.showturtle()
-        
-def init_game(x, y):
-    global game_state
-    game_state = "main_menu"
-    screen.title("")
-    turtle.penup()
-    player.penup()
-    turtle.hideturtle()
-    screen.bgcolor("cyan")
-    player.setpos(-393,-120)
-    screen.bgpic("title_screen.png")
-    player.shape("player")
-    play_button.shape("play_button")
-    play_button.showturtle()
-    close_button.shape("close_button")
-    back_button.shape("back_button")
-    main_menu_button.shape("main_menu_button")
-    back_button.hideturtle()
-    back_button.setpos(10000, 10000)
-    main_menu_button.hideturtle()
-    main_menu_button.setpos(10000, 10000)
-    play_button.showturtle()
-    play_button.speed(100000)
-    play_button.setpos(0, 0)
-    close_button.showturtle()
-    up_arrow.hideturtle()
-    down_arrow.hideturtle()
-    box.hideturtle()
-    turtle.clear()
-    edit_button.hideturtle()
-    player.showturtle()
-    close_button.speed(100000)
-    close_button.setpos(0, -60)
+        buttons.close.speed(100000)
+        buttons.close.setpos(0, -60)
+    return init_game
     
 def close_game(x, y):
     global game_state
@@ -190,17 +189,18 @@ def debug():
                 pass
         if game_state == "closed":
             quit()
-            
-def game_loop():
-    while True:
-        if game_state == "play":
-            up_arrow.hideturtle()
-            down_arrow.hideturtle()
-            box.hideturtle()
-            play_button.hideturtle()
-            edit_button.hideturtle()
-        if game_state == "closed":
-            quit()
+def make_game_loop(buttons):            
+    def game_loop():
+        while True:
+            if game_state == "play":
+                buttons.up_arrow.hideturtle()
+                buttons.down_arrow.hideturtle()
+                box.hideturtle()
+                buttons.play.hideturtle()
+                buttons.edit.hideturtle()
+            if game_state == "closed":
+                quit()
+    return game_loop
             
 def event_up_button_click(x, y):
     global level_num
@@ -230,39 +230,48 @@ def screen_click_event(x, y):
         block_data.append(turtle.ycor())
         block_data.append(edit_block)
         map_data.append(block_data)
+
+def make_edit(buttons):        
+    def edit(x, y):
+        global game_state
+        screen.bgpic("background.png")
+        buttons.edit.hideturtle()
+        box.hideturtle()
+        turtle.clear()
+        buttons.up_arrow.hideturtle()
+        buttons.down_arrow.hideturtle()
+        game_state = "edit"
+        player.hideturtle()
+        buttons.close.setpos(10000, 10000)
+    return edit
         
-def edit(x, y):
-    global game_state
-    screen.bgpic("background.png")
-    edit_button.hideturtle()
-    box.hideturtle()
-    turtle.clear()
-    up_arrow.hideturtle()
-    down_arrow.hideturtle()
-    game_state = "edit"
-    player.hideturtle()
-    close_button.setpos(10000, 10000)
-    
 def make_event_fn(block_num):
     def event_fn():
         global edit_block
         edit_block = block_num
     return event_fn
 
-init_variables()
-init_game(0, 0)
-back_button.onclick(init_game)
-play_button.onclick(open_game)
-close_button.onclick(close_game)
-up_arrow.onclick(event_up_button_click)
-down_arrow.onclick(event_down_button_click)
-edit_button.onclick(edit)
-for i in range(4):
-    screen.onkey(make_event_fn(i), str(i))
-screen.onclick(screen_click_event)
+class Buttons(object):
+    def __init__(self):
+        self.edit = Turtle()
+        self.close = Turtle()
+        self.play = Turtle()
+        self.back = Turtle()
+        self.up_arrow = Turtle()
+        self.down_arrow = Turtle()
 
-threads = [Thread(target=debug), Thread(target=game_loop)]
-for thread in threads:
-    thread.start()
-screen.listen()
+def main():
+    buttons = init_buttons()
+    init_variables()
+    make_init_game_fn(buttons)(0, 0)
+    for i in range(4):
+        screen.onkey(make_event_fn(i), str(i))
+    screen.onclick(screen_click_event)
+    threads = [Thread(target=debug), Thread(target=make_game_loop(buttons))]
+    for thread in threads:
+        thread.start()
+    screen.listen()
+
+    
+main()
 screen.mainloop()
